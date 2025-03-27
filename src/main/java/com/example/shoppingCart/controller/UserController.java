@@ -4,6 +4,7 @@ import com.example.shoppingCart.model.ProductModel;
 import com.example.shoppingCart.model.UserModel;
 import com.example.shoppingCart.service.ProductService;
 import com.example.shoppingCart.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@Tag(name = "User", description = "Shopping Cart Operations")
 @RequestMapping("/user")
 public class UserController {
 
