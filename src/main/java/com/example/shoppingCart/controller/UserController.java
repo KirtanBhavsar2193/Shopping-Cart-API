@@ -51,14 +51,14 @@ public class UserController {
 
 
     // Get Product By Category
-    @GetMapping("/category")
+    /*@GetMapping("/category")
     public ResponseEntity<List<ProductModel>> getByCategory(@RequestParam String category) {
         List<ProductModel> products = userService.findProductByCategory(category);
         return ResponseEntity.ok(products);
-    }
+    }*/
 
     @GetMapping("/search")
     public List<ProductModel> searchProducts(@RequestParam(required = false) String search) {
-        return productService.searchProducts(search);
+        return userService.searchProducts(search);
     }
 }

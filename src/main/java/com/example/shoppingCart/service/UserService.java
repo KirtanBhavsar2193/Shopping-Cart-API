@@ -5,6 +5,8 @@ import com.example.shoppingCart.entity.Role;
 import com.example.shoppingCart.entity.User;
 import com.example.shoppingCart.entity.UserRole;
 import com.example.shoppingCart.enums.ProductCategory;
+import com.example.shoppingCart.exceptions.DataNotFoundException;
+import com.example.shoppingCart.exceptions.DataValidationException;
 import com.example.shoppingCart.mapper.ProductMapper;
 import com.example.shoppingCart.mapper.RoleMapper;
 import com.example.shoppingCart.mapper.UserMapper;
@@ -54,21 +56,16 @@ public class UserService {
     public UserModel addCustomer(UserModel userModel) {
 
         User addUser = userMapper.userModelToUser(userModel); // Converted to User Entity
-
-        // Save user to get ID
-        addUser = userRepository.save(addUser);
+        addUser = userRepository.save(addUser); // Save user to get ID
 
         // Extract Roles From Model
         List<Long> roleIdsFromModel = userModel.getRoles().stream().map(r -> r.getRoleId()).toList();
-
         // Finding all matching Roles From DB
         List<Role> roleInDb = roleRepository.findAllByRoleIdIn(roleIdsFromModel); // It is used for finding the roles inside the DB
-
         // Extract Roles Id that exists in Database
         List<Long> roleIdsInDb = roleInDb.stream().map(r -> r.getRoleId()).toList();
 
         List<Long> invalidRoles = new ArrayList<>();
-
         // Checking for invalid Roles
         for(Long roleId : roleIdsFromModel){
             if(!roleIdsInDb.contains(roleId)){
@@ -76,7 +73,9 @@ public class UserService {
             }
         }
 
-        if(!invalidRoles.isEmpty()){throw new IllegalArgumentException("Invalid role ID: " + invalidRoles + ". Allowed role IDs are 1, 2, and 3.");}
+        if(!invalidRoles.isEmpty()) {
+            throw new DataValidationException("Invalid role ID: " + invalidRoles);
+        }
 
         // Filter Valid Roles
         List<Role> saveRoles = roleInDb.stream().filter(r -> roleIdsFromModel.contains(r.getRoleId())).toList();
@@ -116,7 +115,7 @@ public class UserService {
     public UserModel updateUser(Long id, UserModel userModel) {
 
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException());
+                .orElseThrow(() -> new DataNotFoundException("Not Found User of this Id:- " + id));
         userMapper.updateUserModel(userModel, existingUser);
         existingUser.setUserId(id);
 
@@ -124,26 +123,16 @@ public class UserService {
 
         // Fetching Role Id
         List<Long> incomingRoleIdsFromModel = userModel.getRoles().stream().map(u -> u.getRoleId()).distinct().toList();
-
         // Roles From Db
         List<Role> roleInDb = roleRepository.findAllByRoleIdIn(incomingRoleIdsFromModel);
-
-        List<Long> roleIdsInDb = roleInDb.stream()
-                .map(r -> r.getRoleId())
-                .toList();
-
+        List<Long> roleIdsInDb = roleInDb.stream().map(r -> r.getRoleId()).toList();
 
         // Fetch Existing Roles from user Database
-
         List<UserRole> existingRoles = userRoleRepository.findByUserUserId((id));
-        List<Long> existingRoleIds = existingRoles.stream()
-                .map(r -> r.getRole().getRoleId())
-                .toList();
+        List<Long> existingRoleIds = existingRoles.stream().map(r -> r.getRole().getRoleId()).toList();
 
         // Determine Roles To Remove
-
         List<Long> removeRoleIds = new ArrayList<>();
-
         for(Long roleId : existingRoleIds){
             if(!incomingRoleIdsFromModel.contains(roleId)){
                 removeRoleIds.add(roleId);
@@ -155,9 +144,7 @@ public class UserService {
         }
 
         // Roles To Add
-        List<Long> nonAllocateRoleIds = incomingRoleIdsFromModel.stream()
-                .filter(roleId -> !existingRoleIds.contains(roleId))  // Compare incoming IDs against existing ones
-                .toList();  // Collect all matching roleIds into a list
+        List<Long> nonAllocateRoleIds = incomingRoleIdsFromModel.stream().filter(roleId -> !existingRoleIds.contains(roleId)).toList();
 
         List<Long> invalidRoleIds = new ArrayList<>();
         if (!nonAllocateRoleIds.isEmpty()) {
@@ -169,7 +156,7 @@ public class UserService {
         }
 
         if (!invalidRoleIds.isEmpty()) {
-            throw new RuntimeException("Invalid Roles" + invalidRoleIds);
+            throw new DataValidationException("Invalid Roles" + invalidRoleIds);
         }
 
         List<Role> updatedRoles = roleInDb.stream().filter(rd -> nonAllocateRoleIds.contains(rd.getRoleId())).toList();
@@ -182,14 +169,8 @@ public class UserService {
         }
 
         UserModel updatedUserModel = userMapper.userToUserModel(savedUser);
-
-        // Updated List
         List<UserRole> updatedUserRoles = userRoleRepository.findByUserUserId(id);
-
-        List<RoleModel> updatedRoleModels = updatedUserRoles.stream()
-                .map(userRole -> roleMapper.rolesToRolesModel(userRole.getRole()))
-                .toList();
-
+        List<RoleModel> updatedRoleModels = updatedUserRoles.stream().map(userRole -> roleMapper.rolesToRolesModel(userRole.getRole())).toList();
         updatedUserModel.setRoles(updatedRoleModels);
 
         return updatedUserModel;
@@ -197,7 +178,7 @@ public class UserService {
 
 
     // Find Product By Category
-    public List<ProductModel> findProductByCategory(String categoryName) {
+    /*public List<ProductModel> findProductByCategory(String categoryName) {
         if (categoryName == null || categoryName.trim().isEmpty()) {
             return Collections.emptyList();
         }
@@ -206,9 +187,7 @@ public class UserService {
 
         if (closestCategory != null) {
             List<Product> products = productRepository.findByProductCategory(closestCategory);
-            return products.stream()
-                    .map(productMapper::productToProductModel)
-                    .toList();
+            return products.stream().map(productMapper::productToProductModel).toList();
         }
 
         return Collections.emptyList();
@@ -235,7 +214,7 @@ public class UserService {
             }
         }
         return bestMatch;
-    }
+    }*/
 
     public List<ProductModel> searchProducts(String search) {
 
