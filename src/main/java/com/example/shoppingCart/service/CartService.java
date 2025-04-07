@@ -3,6 +3,8 @@ package com.example.shoppingCart.service;
 import com.example.shoppingCart.entity.Cart;
 import com.example.shoppingCart.entity.Product;
 import com.example.shoppingCart.entity.User;
+import com.example.shoppingCart.exceptions.DataNotFoundException;
+import com.example.shoppingCart.exceptions.DataValidationException;
 import com.example.shoppingCart.mapper.CartMapper;
 import com.example.shoppingCart.model.CartModel;
 import com.example.shoppingCart.repository.CartRepository;
@@ -34,16 +36,16 @@ public class CartService {
     public List<CartModel> addProductToCart(Long userId, CartModel cartModels) {
 
         if(cartRepository.existsByUserUserIdAndProductProductId(userId, cartModels.getProductId())){
-            throw new RuntimeException("Product Already exist with user");
+            throw new DataValidationException("Product Already exist with user");
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User Not Available"));
+                .orElseThrow(() -> new DataNotFoundException("User Not Available"));
 
         List<CartModel> responseList = new ArrayList<>();
 
         Product product = productRepository.findById(cartModels.getProductId())
-                .orElseThrow(() -> new RuntimeException("Product Not Found with ID: " + cartModels.getProductId()));
+                .orElseThrow(() -> new DataNotFoundException("Product Not Found with ID: " + cartModels.getProductId()));
 
         Cart cart = new Cart();
         cart.setUser(user);
@@ -53,9 +55,7 @@ public class CartService {
         Cart savedCart = cartRepository.save(cart);
 
         CartModel response = cartMapper.cartToCartModel(savedCart);
-        if (response == null) {
-            throw new RuntimeException("CartMapper returned null! Check the mapping configuration.");
-        }
+
         response.setProductName(product.getProductName());
         response.setProductPrice(Double.valueOf(product.getProductPrice()));
 

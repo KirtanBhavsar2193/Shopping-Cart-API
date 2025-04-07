@@ -2,6 +2,7 @@ package com.example.shoppingCart.service;
 
 
 import com.example.shoppingCart.entity.Product;
+import com.example.shoppingCart.exceptions.DataNotFoundException;
 import com.example.shoppingCart.mapper.ProductMapper;
 import com.example.shoppingCart.model.ProductModel;
 import com.example.shoppingCart.repository.ProductRepository;
@@ -57,7 +58,7 @@ public class ProductService {
     // Update Product By ID
     public ProductModel updateProduct(Long id, ProductModel productModel) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+                .orElseThrow(() -> new DataNotFoundException("Product not found with id: " + id));
         productMapper.updateProductModel(productModel, product);
         product.setProductId(id);
         Product updatedProducts = productRepository.save(product);

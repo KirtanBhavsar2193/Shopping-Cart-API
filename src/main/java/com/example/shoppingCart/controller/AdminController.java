@@ -30,14 +30,14 @@ public class AdminController {
     //******** For Product ********//
 
     // Get Product By Category
-    @GetMapping("/category")
-    public ResponseEntity<List<ProductModel>> getByCategory(@RequestParam String category) {
-        List<ProductModel> products = userService.findProductByCategory(category);
-        if (products.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyList()); // Return 404 if no products found
-        }
-        return ResponseEntity.ok(products);
-    }
+//    @GetMapping("/category")
+//    public ResponseEntity<List<ProductModel>> getByCategory(@RequestParam String category) {
+//        List<ProductModel> products = userService.findProductByCategory(category);
+//        if (products.isEmpty()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyList()); // Return 404 if no products found
+//        }
+//        return ResponseEntity.ok(products);
+//    }
 
     //******** For User ********//
 
